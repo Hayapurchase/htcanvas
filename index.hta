@@ -34,6 +34,13 @@
                 display:block;
                 width:100vw;
                 height:calc(100vh - 48px); /* leave room for toolbar */
+                cursor: crosshair;         /* default cursor for drawing */
+            }
+
+            /* Cursor shown when eraser mode is active.
+               (index.js toggles the .erasing class) */
+            canvas.erasing{
+                cursor: cell;              /* simple visual difference */
             }
         </style>
         <script defer src = "index.js"></script>
@@ -51,6 +58,7 @@
             </label>
             <button id="clearCanvas">Clear</button>
             <button id="saveCanvas">Save</button>
+            <button id="toggleEraser">Eraser&nbsp;(E)</button>
         </div>
 
         <canvas></canvas>
