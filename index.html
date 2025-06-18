@@ -6,48 +6,56 @@
         <title>HTCanvas – Simple Drawing Tool</title>
         <meta name="description" content="A lightweight in-browser drawing canvas">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- Font-Awesome for icon buttons -->
+        <link rel="stylesheet"
+              href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+              integrity="sha512-1ycn6IcaQQ40/MKB4Imkb9T9+LbcQ2P5e6S0F2dM9O3ZXl9uOK7qv9qY5V4W3X3ENcyhXK6ImmoYQD9N0VY/Q=="
+              crossorigin="anonymous" referrerpolicy="no-referrer"/>
         <style>
             html,
             body{
-                padding:0;
-                margin:0;
+                padding: 0;
+                margin: 0;
             }
 
-            /* Toolbar */
+            /* Toolbar / controls container */
             #controls{
-                display:flex;
-                align-items:center;
-                gap:.75rem;
-                padding:.5rem 1rem;
+                display: flex;
+                align-items: center;
+                gap: .75rem;
+                padding: .5rem 1rem;
                 background:#f4f4f4;
                 border-bottom:1px solid #ddd;
-                box-sizing:border-box;
+                box-sizing: border-box;
             }
 
             #controls label{
                 font-size:.85rem;
-                font-family:system-ui,sans-serif;
+                font-family: system-ui, sans-serif;
             }
 
             /* Workspace (sidebar + canvas) */
             #workspace{
-                display:flex;              /* sidebar | canvas */
+                position:relative;         /* containing block for abs-pos children */
                 height:calc(100vh - 48px); /* 48px ≈ toolbar height */
-                flex:1 1 auto;
-                min-width:0;               /* allow children to shrink */
+                width:100vw;               /* full viewport width */
+                overflow:hidden;           /* prevent accidental scrollbars */
             }
 
             /* Sidebar */
             #sidebar{
-                width:240px;               /* reserve fixed space */
+                position:absolute;
+                top:0;
+                left:0;
+                width:240px;               /* fixed sidebar width */
                 background:#fafafa;
                 border-right:1px solid #ddd;
                 padding:.5rem;
                 box-sizing:border-box;
                 overflow:auto;
                 font-family:system-ui,sans-serif;
-                flex-shrink:0;             /* keep width, don't overlap */
-                z-index:2;                 /* stay above canvas */
+                z-index:2;                 /* above canvas */
+                height:100%;
             }
 
             #sidebar .panel{
@@ -58,20 +66,34 @@
                 font-size:.9rem;
             }
 
+            /* Canvas */
             canvas{
-                background-color:white;
-                flex:1;              /* fill remaining workspace */
+                position:absolute;
+                top:0;
+                left:240px;                /* start after sidebar */
+                width:calc(100% - 240px);  /* take remaining width */
                 height:100%;
+                /* subtle paper-like texture */
+                background:
+                    repeating-linear-gradient(45deg,
+                    #fafafa 0px,
+                    #fafafa 10px,
+                    #f3f3f3 10px,
+                    #f3f3f3 20px);
                 display:block;
-                min-width:0;               /* respect sidebar width */
                 cursor: crosshair;         /* default cursor for drawing */
             }
 
             /* Cursor shown when eraser mode is active.
-               (index.js toggles the .erasing class) */
+               (JavaScript will add/remove the .erasing class.) */
             canvas.erasing{
                 cursor: cell;              /* simple visual difference */
             }
+            /* outline used for lasso / selections (drawn in JS) */
+            .selection-outline{
+                outline:1px dashed #2196f3;
+            }
+
 
             /* Sidebar buttons */
             #sidebar button{
@@ -83,12 +105,14 @@
                 border:1px solid #ccc;
                 border-radius:4px;
                 font-size:.8rem;
+                text-align:center;
                 cursor:pointer;
             }
             #sidebar button:hover{
                 background:#e0e0e0;
             }
         </style>
+        <!-- Custom UI, dat.GUI no longer used -->
         <script defer src = "index.js"></script>
     </head>
     <body>
@@ -102,10 +126,10 @@
                 Width:
                 <input type="range" id="lineWidth" min="1" max="20" value="5">
             </label>
-            <button id="clearCanvas">Clear</button>
-            <button id="saveCanvas">Save</button>
-            <button id="saveSVG">Export&nbsp;SVG</button>
-            <button id="toggleEraser">Eraser&nbsp;(E)</button>
+            <button id="clearCanvas"   title="Clear"><i class="fa fa-trash"></i></button>
+            <button id="saveCanvas"    title="Save PNG"><i class="fa fa-image"></i></button>
+            <button id="saveSVG"       title="Export SVG"><i class="fa fa-file-export"></i></button>
+            <button id="toggleEraser"  title="Eraser (E)"><i class="fa fa-eraser"></i></button>
             <!-- Filters -->
             <label>
                 Filter:
@@ -130,12 +154,14 @@
                 <!-- Tools Panel -->
                 <section class="panel" id="toolsPanel">
                     <h3>Tools</h3>
-                    <button data-tool="brush">Brush</button>
-                    <button data-tool="fill">Fill&nbsp;Bucket</button>
-                    <button data-tool="rect">Rectangle</button>
-                    <button data-tool="circle">Circle</button>
-                    <button data-tool="line">Line</button>
-                    <button data-tool="text">Text</button>
+                    <button data-tool="brush"  title="Brush"><i class="fa fa-paint-brush"></i></button>
+                    <button data-tool="fill"   title="Fill Bucket"><i class="fa fa-fill-drip"></i></button>
+                    <button data-tool="rect"   title="Rectangle"><i class="fa fa-square"></i></button>
+                    <button data-tool="circle" title="Circle"><i class="fa fa-circle"></i></button>
+                    <button data-tool="line"   title="Line"><i class="fa fa-minus"></i></button>
+                    <button data-tool="text"   title="Text"><i class="fa fa-font"></i></button>
+                    <button data-tool="lasso"  title="Lasso Select"><i class="fa fa-draw-polygon"></i></button>
+                    <button data-tool="move"   title="Move Selection"><i class="fa fa-up-down-left-right"></i></button>
                 </section>
 
                 <!-- Layers Panel -->
