@@ -59,6 +59,21 @@
             <button id="clearCanvas">Clear</button>
             <button id="saveCanvas">Save</button>
             <button id="toggleEraser">Eraser&nbsp;(E)</button>
+            <!-- Filters -->
+            <label>
+                Filter:
+                <select id="filterSelect">
+                    <option value="none">Original</option>
+                    <option value="grayscale(100%)">Grayscale</option>
+                    <option value="sepia(100%)">Sepia</option>
+                    <option value="blur(3px)">Blur</option>
+                    <option value="brightness(130%)">Brightness</option>
+                    <option value="contrast(150%)">Contrast</option>
+                    <option value="saturate(180%)">Saturate</option>
+                    <option value="invert(100%)">Invert</option>
+                </select>
+            </label>
+            <button id="resetFilter">Reset</button>
         </div>
 
         <canvas></canvas>
