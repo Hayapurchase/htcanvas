@@ -17,6 +17,9 @@ window.onload = function(){
     const filterSelect   = document.getElementById('filterSelect');
     const resetFilterBtn = document.getElementById('resetFilter');
     let   currentFilter  = 'none';           // css filter string
+    /* ---------- SVG data ---------- */
+    const strokes        = [];               // store finished strokes
+    let   currentStroke  = null;             // stroke currently being drawn
 
     /* ---------- Canvas helpers ---------- */
     function resizeCanvas(){
@@ -49,12 +52,29 @@ window.onload = function(){
         const {x, y} = getPos(e);
         ctx.beginPath();
         ctx.moveTo(x, y);
+
+        /* Start collecting a new stroke if NOT in eraser mode */
+        if(!eraserActive){
+            currentStroke = {
+                color : ctx.strokeStyle,
+                width : ctx.lineWidth,
+                points: [{x, y}]
+            };
+        }else{
+            currentStroke = null;
+        }
         draw(e); // draw first point
     }
 
     function endStroke(){
         painting = false;
         ctx.beginPath();
+
+        /* Save completed stroke */
+        if(currentStroke && currentStroke.points.length > 1){
+            strokes.push(currentStroke);
+        }
+        currentStroke = null;
     }
 
     function draw(e){
@@ -66,6 +86,11 @@ window.onload = function(){
         ctx.stroke();
         ctx.beginPath();
         ctx.moveTo(x, y);
+
+        /* Collect points for SVG */
+        if(currentStroke){
+            currentStroke.points.push({x, y});
+        }
     }
 
     /* ---------- Event listeners ---------- */
@@ -128,6 +153,7 @@ window.onload = function(){
     // clear
     clearBtn.addEventListener('click', () => {
         ctx.clearRect(0,0,canvasEL.width,canvasEL.height);
+        strokes.length = 0; // reset stored strokes
     });
 
     // save
@@ -146,6 +172,35 @@ window.onload = function(){
         link.download = 'htcanvas.png';
         link.click();
     });
+
+    /* ---------- SVG Export ---------- */
+    const saveSvgBtn = document.getElementById('saveSVG');
+    if(saveSvgBtn){
+        saveSvgBtn.addEventListener('click', () => {
+            const svgString = generateSVG();
+            const blob      = new Blob([svgString], {type:'image/svg+xml'});
+            const url       = URL.createObjectURL(blob);
+            const link      = document.createElement('a');
+            link.href       = url;
+            link.download   = 'htcanvas.svg';
+            link.click();
+            URL.revokeObjectURL(url);
+        });
+    }
+
+    function generateSVG(){
+        const w = canvasEL.width;
+        const h = canvasEL.height;
+        let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`;
+        // optional: background white if desired
+        // svg += `<rect width="100%" height="100%" fill="white"/>`;
+        for(const s of strokes){
+            const d = s.points.map((p,i)=> (i===0?`M ${p.x} ${p.y}`:`L ${p.x} ${p.y}`)).join(' ');
+            svg += `<path d="${d}" stroke="${s.color}" stroke-width="${s.width}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+        }
+        svg += '</svg>';
+        return svg;
+    }
 
     /* ---------- Eraser ---------- */
     document.addEventListener('keydown', e => {
