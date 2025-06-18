@@ -19,6 +19,7 @@ annotate screenshots, or create simple artwork without installing any software.
 * Responsive, full-window canvas that resizes with the browser  
 * Touch-friendly (mobile / tablet support)  
 * Built-in Photoshop-style **filters** (grayscale, sepia, blur, brightness, contrast, etc.)
+* Export your drawing as a **scalable SVG** vector file  
 
 ---
 
@@ -57,6 +58,7 @@ http-server .               # then browse to http://localhost:8080
 4. Pick a **Filter** from the dropdown (e.g. *Grayscale*, *Sepia*, *Blur*) to instantly style the whole canvas, or hit **Reset** to remove it.  
 5. Hit **Clear** to start over or **Save** to download your artwork as
    `htcanvas.png`.
+6. Use **Export SVG** to download a resolution-independent vector version of your artwork that can be edited in tools like Adobe Illustrator or Inkscape.
 
 ### Keyboard Shortcuts
 
