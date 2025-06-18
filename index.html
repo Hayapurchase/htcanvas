@@ -9,24 +9,24 @@
         <style>
             html,
             body{
-                padding: 0;
-                margin: 0;
+                padding:0;
+                margin:0;
             }
 
-            /* Toolbar / controls container */
+            /* Toolbar */
             #controls{
-                display: flex;
-                align-items: center;
-                gap: .75rem;
-                padding: .5rem 1rem;
+                display:flex;
+                align-items:center;
+                gap:.75rem;
+                padding:.5rem 1rem;
                 background:#f4f4f4;
                 border-bottom:1px solid #ddd;
-                box-sizing: border-box;
+                box-sizing:border-box;
             }
 
             #controls label{
                 font-size:.85rem;
-                font-family: system-ui, sans-serif;
+                font-family:system-ui,sans-serif;
             }
 
             /* Workspace (sidebar + canvas) */
@@ -34,7 +34,7 @@
                 display:flex;              /* sidebar | canvas */
                 height:calc(100vh - 48px); /* 48px ≈ toolbar height */
                 flex:1 1 auto;
-                min-width:0;               /* allow children to shrink inside flex */
+                min-width:0;               /* allow children to shrink */
             }
 
             /* Sidebar */
@@ -46,8 +46,8 @@
                 box-sizing:border-box;
                 overflow:auto;
                 font-family:system-ui,sans-serif;
-                flex-shrink:0;             /* prevent canvas from overlapping */
-                z-index:2;                 /* keep on top of canvas */
+                flex-shrink:0;             /* keep width, don't overlap */
+                z-index:2;                 /* stay above canvas */
             }
 
             #sidebar .panel{
@@ -58,11 +58,9 @@
                 font-size:.9rem;
             }
 
-            /* Canvas */
             canvas{
                 background-color:white;
-                /* Make canvas take the rest of the viewport */
-                flex:1;
+                flex:1;              /* fill remaining workspace */
                 height:100%;
                 display:block;
                 min-width:0;               /* respect sidebar width */
@@ -70,7 +68,7 @@
             }
 
             /* Cursor shown when eraser mode is active.
-               (JavaScript will add/remove the .erasing class.) */
+               (index.js toggles the .erasing class) */
             canvas.erasing{
                 cursor: cell;              /* simple visual difference */
             }
@@ -91,7 +89,6 @@
                 background:#e0e0e0;
             }
         </style>
-        <!-- Custom UI, dat.GUI no longer used -->
         <script defer src = "index.js"></script>
     </head>
     <body>
