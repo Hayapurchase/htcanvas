@@ -13,6 +13,10 @@ window.onload = function(){
     const clearBtn    = document.getElementById('clearCanvas');
     const saveBtn     = document.getElementById('saveCanvas');
     const eraserBtn   = document.getElementById('toggleEraser');
+    /* Filter controls */
+    const filterSelect   = document.getElementById('filterSelect');
+    const resetFilterBtn = document.getElementById('resetFilter');
+    let   currentFilter  = 'none';           // css filter string
 
     /* ---------- Canvas helpers ---------- */
     function resizeCanvas(){
@@ -86,6 +90,23 @@ window.onload = function(){
         ctx.lineWidth = e.target.value;
     });
 
+    /* ---------- Filter helpers ---------- */
+    function applyFilter(value){
+        currentFilter           = value || 'none';
+        canvasEL.style.filter   = currentFilter; // visual feedback
+    }
+
+    if(filterSelect){
+        applyFilter(filterSelect.value); // initialise
+        filterSelect.addEventListener('change', e => applyFilter(e.target.value));
+    }
+    if(resetFilterBtn){
+        resetFilterBtn.addEventListener('click', () => {
+            if(filterSelect) filterSelect.value = 'none';
+            applyFilter('none');
+        });
+    }
+
     /* ---------- Eraser helper ---------- */
     function toggleEraser(){
         eraserActive = !eraserActive;
@@ -111,7 +132,15 @@ window.onload = function(){
 
     // save
     saveBtn.addEventListener('click', () => {
-        const dataURL = canvasEL.toDataURL('image/png');
+        /* We need the filter baked into the exported image.
+           Draw to an off-screen canvas using ctx.filter. */
+        const off = document.createElement('canvas');
+        off.width  = canvasEL.width;
+        off.height = canvasEL.height;
+        const offCtx = off.getContext('2d');
+        offCtx.filter = currentFilter;          // apply selected filter
+        offCtx.drawImage(canvasEL, 0, 0);
+        const dataURL = off.toDataURL('image/png');
         const link    = document.createElement('a');
         link.href     = dataURL;
         link.download = 'htcanvas.png';
