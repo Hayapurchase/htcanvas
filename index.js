@@ -25,6 +25,25 @@ window.onload = function(){
     const clearBtn    = document.getElementById('clearCanvas');
     const saveBtn     = document.getElementById('saveCanvas');
     const eraserBtn   = document.getElementById('toggleEraser');
+    /* ---------- Theme controls ---------- */
+    const themeBtn    = document.getElementById('themeToggle');
+    const THEMES      = ['light','dark','colourful'];   // keep in cycle order
+    let   currentTheme;
+
+    /**
+     * Apply a visual theme by toggling a class on <body>.
+     * The "light" theme is the baseline (no extra class).
+     * Chosen theme is persisted to localStorage.
+     */
+    function applyTheme(name='light'){
+        document.body.classList.remove('theme-dark','theme-colourful');
+        if(name !== 'light'){
+            document.body.classList.add(`theme-${name}`);
+        }
+        currentTheme = name;
+        try{ localStorage.setItem('htcanvas-theme', name); }catch(e){}
+        updateCursor(); // cursor may depend on theme colours
+    }
     /* Tool buttons */
     document.querySelectorAll('[data-tool]').forEach(btn=>{
         btn.addEventListener('click', ()=>{
@@ -631,6 +650,20 @@ window.onload = function(){
     // button
     if(eraserBtn){
         eraserBtn.addEventListener('click', toggleEraser);
+    }
+
+    /* ---------- Theme toggle ---------- */
+    if(themeBtn){
+        // initial load
+        const stored = localStorage.getItem('htcanvas-theme') || 'light';
+        applyTheme(stored);
+
+        themeBtn.addEventListener('click', () => {
+            // find next theme in cycle
+            const idx = THEMES.indexOf(currentTheme);
+            const next = THEMES[(idx+1) % THEMES.length];
+            applyTheme(next);
+        });
     }
 
     // clear
