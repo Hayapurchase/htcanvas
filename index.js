@@ -6,8 +6,18 @@ window.onload = function(){
     /* ---------- State ---------- */
     let painting      = false;
     let eraserActive  = false;
-    let currentTool   = 'brush';       // brush | fill | rect | circle | line | text
+    let currentTool   = 'brush';       // brush | fill | rect | circle | line | text | lasso | move
     let shapeStart    = null;          // start-point for shape tools
+    
+    /* ---------- Selection state ---------- */
+    let selectionActive = false;       // whether there is an active selection
+    let selectionPoints = [];          // points defining the lasso selection
+    let selectionData   = null;        // ImageData of the selected region
+    let selectionPos    = {x:0, y:0};  // current position of selection
+    let selectionOrigin = {x:0, y:0};  // original position of selection
+    let moveStart       = null;        // starting point for move operation
+    let tempCanvas      = document.createElement('canvas'); // for selection operations
+    let tempCtx         = tempCanvas.getContext('2d');
 
     /* ---------- DOM Controls ---------- */
     const colorInput  = document.getElementById('strokeColor');
@@ -51,6 +61,10 @@ window.onload = function(){
 
         canvasEL.width  = window.innerWidth  - sidebarW;
         canvasEL.height = window.innerHeight - controlsH;
+        
+        // Also resize temp canvas used for selections
+        tempCanvas.width = canvasEL.width;
+        tempCanvas.height = canvasEL.height;
     }
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
@@ -80,7 +94,9 @@ window.onload = function(){
             rect   : 'crosshair',
             circle : 'crosshair',
             line   : 'crosshair',
-            text   : 'text'
+            text   : 'text',
+            lasso  : 'crosshair',
+            move   : selectionActive ? 'move' : 'default'
         };
         canvasEL.style.cursor = map[currentTool] || 'crosshair';
     }
@@ -134,7 +150,7 @@ window.onload = function(){
             const [r,g,b] = hexToRGB(col);
             return [r,g,b,255];
         }
-        const m = col.match(/rgba?\\((\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)(?:\\s*,\\s*(\\d*\\.?\\d+))?\\)/);
+        const m = col.match(/rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*(\d*\.?\d+))?\)/);
         if(m){
             const r = parseInt(m[1],10);
             const g = parseInt(m[2],10);
@@ -144,6 +160,203 @@ window.onload = function(){
         }
         // Fallback to black
         return [0,0,0,255];
+    }
+
+    /* ---------- Selection helpers ---------- */
+    function isPointInPolygon(point, polygon) {
+        // Ray-casting algorithm to determine if point is inside polygon
+        let inside = false;
+        for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+            const xi = polygon[i].x, yi = polygon[i].y;
+            const xj = polygon[j].x, yj = polygon[j].y;
+            
+            const intersect = ((yi > point.y) !== (yj > point.y)) &&
+                (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi);
+            if (intersect) inside = !inside;
+        }
+        return inside;
+    }
+    
+    function createSelectionMask() {
+        // Create a mask based on the lasso selection
+        if (!selectionPoints.length) return null;
+        
+        // Clear temp canvas
+        tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+        
+        // Draw selection path
+        tempCtx.beginPath();
+        tempCtx.moveTo(selectionPoints[0].x, selectionPoints[0].y);
+        for (let i = 1; i < selectionPoints.length; i++) {
+            tempCtx.lineTo(selectionPoints[i].x, selectionPoints[i].y);
+        }
+        tempCtx.closePath();
+        tempCtx.fillStyle = 'rgba(255,255,255,1)';
+        tempCtx.fill();
+        
+        return tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+    }
+    
+    function captureSelection() {
+        if (!selectionPoints.length) return;
+        
+        // Get the bounding box of selection
+        let minX = Infinity, minY = Infinity, maxX = 0, maxY = 0;
+        for (const pt of selectionPoints) {
+            minX = Math.min(minX, pt.x);
+            minY = Math.min(minY, pt.y);
+            maxX = Math.max(maxX, pt.x);
+            maxY = Math.max(maxY, pt.y);
+        }
+        
+        // Add padding
+        minX = Math.max(0, Math.floor(minX) - 1);
+        minY = Math.max(0, Math.floor(minY) - 1);
+        maxX = Math.min(canvasEL.width, Math.ceil(maxX) + 1);
+        maxY = Math.min(canvasEL.height, Math.ceil(maxY) + 1);
+        
+        const width = maxX - minX;
+        const height = maxY - minY;
+        
+        // Store selection origin
+        selectionOrigin = {x: minX, y: minY};
+        selectionPos = {x: minX, y: minY};
+        
+        // Capture the image data
+        const fullImageData = ctx.getImageData(0, 0, canvasEL.width, canvasEL.height);
+        
+        // Create a new ImageData for the selection
+        selectionData = ctx.createImageData(width, height);
+        
+        // Create mask from selection path
+        const mask = createSelectionMask();
+        
+        // Copy only pixels inside the selection path
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const sourceIdx = ((minY + y) * canvasEL.width + (minX + x)) * 4;
+                const targetIdx = (y * width + x) * 4;
+                const maskIdx = ((minY + y) * canvasEL.width + (minX + x)) * 4;
+                
+                // Only copy if inside mask (white pixel)
+                if (mask.data[maskIdx] > 0) {
+                    selectionData.data[targetIdx] = fullImageData.data[sourceIdx];
+                    selectionData.data[targetIdx + 1] = fullImageData.data[sourceIdx + 1];
+                    selectionData.data[targetIdx + 2] = fullImageData.data[sourceIdx + 2];
+                    selectionData.data[targetIdx + 3] = fullImageData.data[sourceIdx + 3];
+                }
+            }
+        }
+        
+        // Clear the selected area if it's a cut operation
+        clearSelection();
+        
+        selectionActive = true;
+        updateCursor();
+    }
+    
+    function clearSelection() {
+        if (!selectionPoints.length) return;
+        
+        // Clear the area inside the selection
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(selectionPoints[0].x, selectionPoints[0].y);
+        for (let i = 1; i < selectionPoints.length; i++) {
+            ctx.lineTo(selectionPoints[i].x, selectionPoints[i].y);
+        }
+        ctx.closePath();
+        ctx.clip();
+        ctx.clearRect(0, 0, canvasEL.width, canvasEL.height);
+        ctx.restore();
+    }
+    
+    function drawSelectionOutline() {
+        if (!selectionActive || !selectionPoints.length) return;
+        
+        // Draw the selection outline
+        ctx.save();
+        ctx.strokeStyle = '#2196f3';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        
+        // Draw the outline at the current position
+        const offsetX = selectionPos.x - selectionOrigin.x;
+        const offsetY = selectionPos.y - selectionOrigin.y;
+        
+        ctx.moveTo(selectionPoints[0].x + offsetX, selectionPoints[0].y + offsetY);
+        for (let i = 1; i < selectionPoints.length; i++) {
+            ctx.lineTo(selectionPoints[i].x + offsetX, selectionPoints[i].y + offsetY);
+        }
+        ctx.closePath();
+        ctx.stroke();
+        ctx.restore();
+    }
+    
+    function drawSelection() {
+        if (!selectionActive || !selectionData) return;
+        
+        // Draw the selection at its current position
+        ctx.putImageData(
+            selectionData, 
+            selectionPos.x, 
+            selectionPos.y
+        );
+        
+        // Draw outline
+        drawSelectionOutline();
+    }
+    
+    function commitSelection() {
+        if (!selectionActive || !selectionData) return;
+        
+        // Permanently apply the selection to the canvas
+        ctx.putImageData(
+            selectionData, 
+            selectionPos.x, 
+            selectionPos.y
+        );
+        
+        // Reset selection state
+        cancelSelection();
+    }
+    
+    function cancelSelection() {
+        selectionActive = false;
+        selectionPoints = [];
+        selectionData = null;
+        updateCursor();
+        // Redraw the canvas to remove any selection outlines
+        ctx.drawImage(canvasEL, 0, 0);
+    }
+    
+    /* ---------- Clipboard operations ---------- */
+    function copySelection() {
+        if (!selectionActive) return;
+        // Selection is already captured in selectionData
+        console.log('Selection copied');
+    }
+    
+    function cutSelection() {
+        if (!selectionActive) return;
+        copySelection();
+        clearSelection();
+        console.log('Selection cut');
+    }
+    
+    function pasteSelection() {
+        if (!selectionData) return;
+        
+        // Position the pasted content in the center of the viewport
+        selectionPos = {
+            x: Math.floor((canvasEL.width - selectionData.width) / 2),
+            y: Math.floor((canvasEL.height - selectionData.height) / 2)
+        };
+        
+        selectionActive = true;
+        drawSelection();
+        console.log('Selection pasted');
     }
 
     function beginStroke(e){
@@ -167,6 +380,36 @@ window.onload = function(){
                 ctx.fillText(text, x, y);
             }
             return; // No need to set painting=true for text
+        }
+        
+        if(currentTool==='lasso'){
+            // Start a new selection
+            selectionPoints = [{x, y}];
+            painting = true;
+            return;
+        }
+        
+        if(currentTool==='move'){
+            if(selectionActive){
+                // Check if click is inside the selection
+                const offsetX = selectionPos.x - selectionOrigin.x;
+                const offsetY = selectionPos.y - selectionOrigin.y;
+                
+                // Translate selection points
+                const translatedPoints = selectionPoints.map(pt => ({
+                    x: pt.x + offsetX,
+                    y: pt.y + offsetY
+                }));
+                
+                if(isPointInPolygon({x, y}, translatedPoints)){
+                    moveStart = {x, y};
+                    painting = true;
+                } else {
+                    // Commit the current selection if clicking outside
+                    commitSelection();
+                }
+            }
+            return;
         }
 
         if(['rect','circle','line'].includes(currentTool)){
@@ -200,6 +443,25 @@ window.onload = function(){
         if(!painting) return; // If we weren't painting, nothing to end
         
         painting = false;
+        
+        if(currentTool==='lasso'){
+            // Complete the lasso selection
+            if(selectionPoints.length > 2){
+                // Close the path
+                selectionPoints.push(selectionPoints[0]);
+                // Capture the selection
+                captureSelection();
+            } else {
+                // Not enough points for a valid selection
+                selectionPoints = [];
+            }
+            return;
+        }
+        
+        if(currentTool==='move'){
+            moveStart = null;
+            return;
+        }
         
         if(shapeStart && ['rect','circle','line'].includes(currentTool)){
             const {x: sx, y: sy} = shapeStart;
@@ -250,9 +512,51 @@ window.onload = function(){
 
     function draw(e){
         if(!painting) return;
-        if(currentTool !== 'brush') return; // Only draw for brush tool
-
+        
         const {x, y} = getPos(e);
+        
+        if(currentTool === 'lasso'){
+            // Add point to lasso selection
+            selectionPoints.push({x, y});
+            
+            // Draw the lasso as we go
+            ctx.save();
+            ctx.strokeStyle = '#2196f3';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            
+            ctx.beginPath();
+            ctx.moveTo(selectionPoints[0].x, selectionPoints[0].y);
+            for (let i = 1; i < selectionPoints.length; i++) {
+                ctx.lineTo(selectionPoints[i].x, selectionPoints[i].y);
+            }
+            ctx.stroke();
+            ctx.restore();
+            
+            return;
+        }
+        
+        if(currentTool === 'move' && moveStart){
+            // Calculate the movement delta
+            const dx = x - moveStart.x;
+            const dy = y - moveStart.y;
+            
+            // Update the selection position
+            selectionPos.x += dx;
+            selectionPos.y += dy;
+            
+            // Update the move start position
+            moveStart = {x, y};
+            
+            // Redraw the canvas and selection
+            ctx.clearRect(0, 0, canvasEL.width, canvasEL.height);
+            drawSelection();
+            
+            return;
+        }
+        
+        if(currentTool !== 'brush') return; // Only continue for brush tool
+        
         ctx.lineCap  = 'round';
         ctx.lineTo(x, y);
         ctx.stroke();
@@ -333,11 +637,15 @@ window.onload = function(){
     clearBtn.addEventListener('click', () => {
         ctx.clearRect(0,0,canvasEL.width,canvasEL.height);
         strokes.length = 0; // reset stored strokes
+        cancelSelection(); // clear any active selection
         ctx.beginPath(); // Reset any active path
     });
 
     // save
     saveBtn.addEventListener('click', () => {
+        // Commit any active selection before saving
+        if(selectionActive) commitSelection();
+        
         /* We need the filter baked into the exported image.
            Draw to an off-screen canvas using ctx.filter. */
         const off = document.createElement('canvas');
@@ -357,6 +665,9 @@ window.onload = function(){
     const saveSvgBtn = document.getElementById('saveSVG');
     if(saveSvgBtn){
         saveSvgBtn.addEventListener('click', () => {
+            // Commit any active selection before saving
+            if(selectionActive) commitSelection();
+            
             const svgString = generateSVG();
             const blob      = new Blob([svgString], {type:'image/svg+xml'});
             const url       = URL.createObjectURL(blob);
@@ -382,10 +693,31 @@ window.onload = function(){
         return svg;
     }
 
-    /* ---------- Eraser ---------- */
+    /* ---------- Keyboard shortcuts ---------- */
     document.addEventListener('keydown', e => {
+        // Eraser toggle
         if(e.key.toLowerCase() === 'e'){
             toggleEraser();
+        }
+        
+        // Selection operations
+        if(e.key === 'Escape'){
+            cancelSelection();
+        }
+        
+        // Clipboard operations
+        if(e.ctrlKey || e.metaKey){ // Ctrl on Windows/Linux, Command on Mac
+            switch(e.key.toLowerCase()){
+                case 'c': // Copy
+                    if(selectionActive) copySelection();
+                    break;
+                case 'x': // Cut
+                    if(selectionActive) cutSelection();
+                    break;
+                case 'v': // Paste
+                    if(selectionData) pasteSelection();
+                    break;
+            }
         }
     });
 
