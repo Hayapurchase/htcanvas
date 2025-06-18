@@ -9,35 +9,40 @@
         <style>
             html,
             body{
-                padding: 0;
-                margin: 0;
+                padding:0;
+                margin:0;
             }
 
-            /* Toolbar / controls container */
+            /* Toolbar */
             #controls{
-                display: flex;
-                align-items: center;
-                gap: .75rem;
-                padding: .5rem 1rem;
+                display:flex;
+                align-items:center;
+                gap:.75rem;
+                padding:.5rem 1rem;
                 background:#f4f4f4;
                 border-bottom:1px solid #ddd;
-                box-sizing: border-box;
+                box-sizing:border-box;
             }
 
             #controls label{
                 font-size:.85rem;
-                font-family: system-ui, sans-serif;
+                font-family:system-ui,sans-serif;
             }
 
             canvas{
                 background-color:white;
-                /* Make canvas take the rest of the viewport */
                 display:block;
                 width:100vw;
-                height:calc(100vh - 48px); /* approx toolbar height */
+                height:calc(100vh - 48px); /* leave room for toolbar */
+                cursor: crosshair;         /* default cursor for drawing */
+            }
+
+            /* Cursor shown when eraser mode is active.
+               (index.js toggles the .erasing class) */
+            canvas.erasing{
+                cursor: cell;              /* simple visual difference */
             }
         </style>
-        <!-- Custom UI, dat.GUI no longer used -->
         <script defer src = "index.js"></script>
     </head>
     <body>
@@ -53,10 +58,9 @@
             </label>
             <button id="clearCanvas">Clear</button>
             <button id="saveCanvas">Save</button>
+            <button id="toggleEraser">Eraser&nbsp;(E)</button>
         </div>
 
-        <canvas>
-
-        </canvas>
+        <canvas></canvas>
     </body>
 </html>
