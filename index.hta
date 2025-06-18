@@ -29,11 +29,36 @@
                 font-family:system-ui,sans-serif;
             }
 
+            /* Workspace (sidebar + canvas) */
+            #workspace{
+                display:flex;
+                height:calc(100vh - 48px); /* 48px ≈ toolbar height */
+            }
+
+            /* Sidebar */
+            #sidebar{
+                width:220px;
+                background:#fafafa;
+                border-right:1px solid #ddd;
+                padding:.5rem;
+                box-sizing:border-box;
+                overflow:auto;
+                font-family:system-ui,sans-serif;
+            }
+
+            #sidebar .panel{
+                margin-bottom:1rem;
+            }
+            #sidebar h3{
+                margin:.25rem 0 .5rem 0;
+                font-size:.9rem;
+            }
+
             canvas{
                 background-color:white;
+                flex:1;              /* fill remaining workspace */
+                height:100%;
                 display:block;
-                width:100vw;
-                height:calc(100vh - 48px); /* leave room for toolbar */
                 cursor: crosshair;         /* default cursor for drawing */
             }
 
@@ -77,6 +102,46 @@
             <button id="resetFilter">Reset</button>
         </div>
 
-        <canvas></canvas>
+        <!-- Workspace: sidebar + canvas -->
+        <div id="workspace">
+            <!-- Sidebar -->
+            <aside id="sidebar">
+                <!-- Tools Panel -->
+                <section class="panel" id="toolsPanel">
+                    <h3>Tools</h3>
+                    <button data-tool="brush">Brush</button>
+                    <button data-tool="fill">Fill&nbsp;Bucket</button>
+                    <button data-tool="rect">Rectangle</button>
+                    <button data-tool="circle">Circle</button>
+                    <button data-tool="line">Line</button>
+                    <button data-tool="text">Text</button>
+                </section>
+
+                <!-- Layers Panel -->
+                <section class="panel" id="layersPanel">
+                    <h3>Layers</h3>
+                    <ul id="layersList">
+                        <li class="layer-item">Background</li>
+                    </ul>
+                </section>
+
+                <!-- Shape Properties Panel -->
+                <section class="panel" id="shapePropsPanel">
+                    <h3>Shape&nbsp;Properties</h3>
+                    <label>
+                        Fill:
+                        <input type="color" id="fillColor" value="#ffffff">
+                    </label>
+                    <br>
+                    <label>
+                        Stroke&nbsp;Width:
+                        <input type="range" id="shapeStrokeWidth" min="1" max="20" value="2">
+                    </label>
+                </section>
+            </aside>
+
+            <!-- Drawing Canvas -->
+            <canvas></canvas>
+        </div>
     </body>
 </html>
