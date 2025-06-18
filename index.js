@@ -290,7 +290,7 @@ window.onload = function(){
             URL.revokeObjectURL(url);
         });
     }
-
+//generating svg
     function generateSVG(){
         const w = canvasEL.width;
         const h = canvasEL.height;
