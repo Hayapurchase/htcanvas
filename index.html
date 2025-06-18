@@ -31,19 +31,23 @@
 
             /* Workspace (sidebar + canvas) */
             #workspace{
-                display:flex;
+                display:flex;              /* sidebar | canvas */
                 height:calc(100vh - 48px); /* 48px ≈ toolbar height */
+                flex:1 1 auto;
+                min-width:0;               /* allow children to shrink inside flex */
             }
 
             /* Sidebar */
             #sidebar{
-                width:220px;
+                width:240px;               /* reserve fixed space */
                 background:#fafafa;
                 border-right:1px solid #ddd;
                 padding:.5rem;
                 box-sizing:border-box;
                 overflow:auto;
                 font-family:system-ui,sans-serif;
+                flex-shrink:0;             /* prevent canvas from overlapping */
+                z-index:2;                 /* keep on top of canvas */
             }
 
             #sidebar .panel{
@@ -61,6 +65,7 @@
                 flex:1;
                 height:100%;
                 display:block;
+                min-width:0;               /* respect sidebar width */
                 cursor: crosshair;         /* default cursor for drawing */
             }
 
@@ -68,6 +73,22 @@
                (JavaScript will add/remove the .erasing class.) */
             canvas.erasing{
                 cursor: cell;              /* simple visual difference */
+            }
+
+            /* Sidebar buttons */
+            #sidebar button{
+                display:block;
+                width:100%;
+                margin-bottom:.25rem;
+                padding:.35rem .5rem;
+                background:#eee;
+                border:1px solid #ccc;
+                border-radius:4px;
+                font-size:.8rem;
+                cursor:pointer;
+            }
+            #sidebar button:hover{
+                background:#e0e0e0;
             }
         </style>
         <!-- Custom UI, dat.GUI no longer used -->
