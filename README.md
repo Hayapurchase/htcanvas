@@ -20,6 +20,11 @@ annotate screenshots, or create simple artwork without installing any software.
 * Touch-friendly (mobile / tablet support)  
 * Built-in Photoshop-style **filters** (grayscale, sepia, blur, brightness, contrast, etc.)
 * Export your drawing as a **scalable SVG** vector file  
+* Illustrator-style tools:  
+  * **Fill bucket** for one-click area colouring  
+  * **Shape tools** – draw rectangles, circles and straight lines  
+  * **Text tool** – place editable text anywhere on the canvas  
+  * **Layers panel** to organise and reorder your artwork  
 
 ---
 
@@ -59,6 +64,7 @@ http-server .               # then browse to http://localhost:8080
 5. Hit **Clear** to start over or **Save** to download your artwork as
    `htcanvas.png`.
 6. Use **Export SVG** to download a resolution-independent vector version of your artwork that can be edited in tools like Adobe Illustrator or Inkscape.
+7. Select tools (Brush, Fill, Shape, Text) from the **Tools** panel in the sidebar, and manage your drawing order in the **Layers** panel.
 
 ### Keyboard Shortcuts
 
