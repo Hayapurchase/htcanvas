@@ -6,6 +6,8 @@ window.onload = function(){
     /* ---------- State ---------- */
     let painting      = false;
     let eraserActive  = false;
+    let currentTool   = 'brush';       // brush | fill | rect | circle | line | text
+    let shapeStart    = null;          // start-point for shape tools
 
     /* ---------- DOM Controls ---------- */
     const colorInput  = document.getElementById('strokeColor');
@@ -13,6 +15,13 @@ window.onload = function(){
     const clearBtn    = document.getElementById('clearCanvas');
     const saveBtn     = document.getElementById('saveCanvas');
     const eraserBtn   = document.getElementById('toggleEraser');
+    /* Tool buttons */
+    document.querySelectorAll('[data-tool]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+            currentTool = btn.dataset.tool;
+            updateCursor();
+        });
+    });
     /* Filter controls */
     const filterSelect   = document.getElementById('filterSelect');
     const resetFilterBtn = document.getElementById('resetFilter');
@@ -47,9 +56,83 @@ window.onload = function(){
         };
     }
 
+    /* ---------- Cursor helper ---------- */
+    function updateCursor(){
+        const map = {
+            brush  : 'crosshair',
+            fill   : 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAFUlEQVQokWNgGAUjDwQjA4MDAwMDAC8FA/y3zKtYAAAAAElFTkSuQmCC") 4 12, auto',
+            rect   : 'crosshair',
+            circle : 'crosshair',
+            line   : 'crosshair',
+            text   : 'text'
+        };
+        canvasEL.style.cursor = map[currentTool] || 'crosshair';
+    }
+    updateCursor();
+
+    /* ---------- Flood-fill ---------- */
+    function colorsMatch(data, idx, r,g,b,a=255){
+        return data[idx  ]===r &&
+               data[idx+1]===g &&
+               data[idx+2]===b &&
+               data[idx+3]===a;
+    }
+    function bucketFill(x,y, fillStyle){
+        const img = ctx.getImageData(0,0,canvasEL.width,canvasEL.height);
+        const data = img.data;
+        const w = img.width;
+        const idx = (y*w + x)*4;
+        const startR=data[idx], startG=data[idx+1], startB=data[idx+2], startA=data[idx+3];
+        // if clicking on same colour, abort
+        ctx.fillStyle = fillStyle;
+        const fillRGBA = ctx.fillStyle;
+        // convert to rgba numbers
+        ctx.fillRect(-1,-1,1,1); // dummy so style parses
+        const c = ctx.fillStyle; // e.g. rgb(255,0,0)
+        const match = c.match(/\d+/g).map(Number);
+        const fr=match[0], fg=match[1], fb=match[2], fa=255;
+        if(fr===startR && fg===startG && fb===startB) return;
+
+        const stack=[[x,y]];
+        while(stack.length){
+            const [cx,cy]=stack.pop();
+            if(cx<0||cy<0||cx>=w||cy>=img.height) continue;
+            const i=(cy*w+cx)*4;
+            if(!colorsMatch(data,i,startR,startG,startB,startA)) continue;
+            data[i]=fr; data[i+1]=fg; data[i+2]=fb; data[i+3]=fa;
+            stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]);
+        }
+        ctx.putImageData(img,0,0);
+    }
+
     function beginStroke(e){
         painting = true;
         const {x, y} = getPos(e);
+        // Tool branching -----------------------------
+        if(currentTool==='fill'){
+            bucketFill(Math.floor(x),Math.floor(y),ctx.strokeStyle);
+            painting=false;
+            return;
+        }
+
+        if(currentTool==='text'){
+            const text = prompt('Enter text:', '');
+            if(text){
+                ctx.fillStyle = ctx.strokeStyle;
+                ctx.textBaseline = 'top';
+                ctx.font = `${parseInt(widthInput.value,10)*4}px sans-serif`;
+                ctx.fillText(text, x, y);
+            }
+            painting=false;
+            return;
+        }
+
+        if(['rect','circle','line'].includes(currentTool)){
+            shapeStart={x,y};
+            return; // wait for mouseup to draw
+        }
+
+        // default brush behaviour
         ctx.beginPath();
         ctx.moveTo(x, y);
 
@@ -66,9 +149,29 @@ window.onload = function(){
         draw(e); // draw first point
     }
 
-    function endStroke(){
+    function endStroke(e){
         painting = false;
         ctx.beginPath();
+        if(shapeStart && ['rect','circle','line'].includes(currentTool)){
+            const {x: sx, y: sy} = shapeStart;
+            const {x: ex, y: ey} = getPos(e);
+            ctx.lineWidth = widthInput.value;
+            ctx.strokeStyle = colorInput.value;
+            if(currentTool==='rect'){
+                ctx.strokeRect(sx, sy, ex-sx, ey-sy);
+            }else if(currentTool==='circle'){
+                const radius = Math.hypot(ex-sx, ey-sy);
+                ctx.beginPath();
+                ctx.arc(sx, sy, radius, 0, Math.PI*2);
+                ctx.stroke();
+            }else if(currentTool==='line'){
+                ctx.beginPath();
+                ctx.moveTo(sx, sy);
+                ctx.lineTo(ex, ey);
+                ctx.stroke();
+            }
+            shapeStart=null;
+        }
 
         /* Save completed stroke */
         if(currentStroke && currentStroke.points.length > 1){
