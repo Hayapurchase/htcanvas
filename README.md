@@ -18,6 +18,7 @@ annotate screenshots, or create simple artwork without installing any software.
 * **Save** button to download your drawing as a PNG image  
 * Responsive, full-window canvas that resizes with the browser  
 * Touch-friendly (mobile / tablet support)  
+* Built-in Photoshop-style **filters** (grayscale, sepia, blur, brightness, contrast, etc.)
 
 ---
 
@@ -53,7 +54,8 @@ http-server .               # then browse to http://localhost:8080
 1. Choose a stroke colour and width from the toolbar.  
 2. Click / tap and drag on the canvas to draw.  
 3. Press **E** at any time to switch to the eraser (press again to return).  
-4. Hit **Clear** to start over or **Save** to download your artwork as
+4. Pick a **Filter** from the dropdown (e.g. *Grayscale*, *Sepia*, *Blur*) to instantly style the whole canvas, or hit **Reset** to remove it.  
+5. Hit **Clear** to start over or **Save** to download your artwork as
    `htcanvas.png`.
 
 ### Keyboard Shortcuts
