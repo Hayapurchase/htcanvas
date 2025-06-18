@@ -3,27 +3,56 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title></title>
-        <meta name="description" content="">
+        <title>HTCanvas – Simple Drawing Tool</title>
+        <meta name="description" content="A lightweight in-browser drawing canvas">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
-            html
+            html,
             body{
-                padding: 0;
-                margin: 0;
-                background-color: black;
+                padding:0;
+                margin:0;
+            }
+
+            /* Toolbar */
+            #controls{
+                display:flex;
+                align-items:center;
+                gap:.75rem;
+                padding:.5rem 1rem;
+                background:#f4f4f4;
+                border-bottom:1px solid #ddd;
+                box-sizing:border-box;
+            }
+
+            #controls label{
+                font-size:.85rem;
+                font-family:system-ui,sans-serif;
             }
 
             canvas{
                 background-color:white;
+                display:block;
+                width:100vw;
+                height:calc(100vh - 48px); /* leave room for toolbar */
             }
         </style>
-         <script src="https://cdn.jsdelivr.net/npm/dat.gui@0.7.7/build/dat.gui.min.js"></script>
         <script defer src = "index.js"></script>
     </head>
     <body>
-        <canvas>
+        <!-- Controls -->
+        <div id="controls">
+            <label>
+                Color:
+                <input type="color" id="strokeColor" value="#ff0000">
+            </label>
+            <label>
+                Width:
+                <input type="range" id="lineWidth" min="1" max="20" value="5">
+            </label>
+            <button id="clearCanvas">Clear</button>
+            <button id="saveCanvas">Save</button>
+        </div>
 
-        </canvas>
+        <canvas></canvas>
     </body>
 </html>
