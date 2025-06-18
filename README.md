@@ -24,7 +24,11 @@ annotate screenshots, or create simple artwork without installing any software.
   * **Fill bucket** for one-click area colouring  
   * **Shape tools** – draw rectangles, circles and straight lines  
   * **Text tool** – place editable text anywhere on the canvas  
+  * **Lasso selection & move** – free-form select any region and drag to reposition  
+  * **Move tool** – reposition an existing selection at any time  
   * **Layers panel** to organise and reorder your artwork  
+* Subtle paper-like **textured background** for a more natural drawing surface  
+* Clean **icon-based buttons** (Font Awesome) for a modern, compact UI  
 
 ---
 
