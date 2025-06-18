@@ -18,6 +18,9 @@ window.onload = function(){
     /* Tool buttons */
     document.querySelectorAll('[data-tool]').forEach(btn=>{
         btn.addEventListener('click', ()=>{
+            // Reset any ongoing drawing when changing tools
+            painting = false;
+            ctx.beginPath(); // Clear any active path
             currentTool = btn.dataset.tool;
             updateCursor();
         });
@@ -119,13 +122,15 @@ window.onload = function(){
     }
 
     function beginStroke(e){
-        painting = true;
+        // Always start with a fresh path
+        ctx.beginPath();
+        
         const {x, y} = getPos(e);
+        
         // Tool branching -----------------------------
         if(currentTool==='fill'){
             bucketFill(Math.floor(x),Math.floor(y),ctx.strokeStyle);
-            painting=false;
-            return;
+            return; // No need to set painting=true for fill
         }
 
         if(currentTool==='text'){
@@ -136,17 +141,17 @@ window.onload = function(){
                 ctx.font = `${parseInt(widthInput.value,10)*4}px sans-serif`;
                 ctx.fillText(text, x, y);
             }
-            painting=false;
-            return;
+            return; // No need to set painting=true for text
         }
 
         if(['rect','circle','line'].includes(currentTool)){
             shapeStart={x,y};
+            painting = true; // Only set painting=true for drawing operations
             return; // wait for mouseup to draw
         }
 
         // default brush behaviour
-        ctx.beginPath();
+        painting = true;
         ctx.moveTo(x, y);
 
         /* Start collecting a new stroke if NOT in eraser mode */
@@ -159,31 +164,53 @@ window.onload = function(){
         }else{
             currentStroke = null;
         }
-        draw(e); // draw first point
+        
+        // For brush, we want to draw the first point
+        if(currentTool === 'brush'){
+            draw(e);
+        }
     }
 
     function endStroke(e){
+        if(!painting) return; // If we weren't painting, nothing to end
+        
         painting = false;
-        ctx.beginPath();
+        
         if(shapeStart && ['rect','circle','line'].includes(currentTool)){
             const {x: sx, y: sy} = shapeStart;
             const {x: ex, y: ey} = getPos(e);
+            
+            // Save current context settings
+            const prevLineWidth = ctx.lineWidth;
+            const prevStrokeStyle = ctx.strokeStyle;
+            
+            // Apply current settings
             ctx.lineWidth = widthInput.value;
             ctx.strokeStyle = colorInput.value;
+            
+            // Always start with fresh path for shapes
+            ctx.beginPath();
+            
             if(currentTool==='rect'){
-                ctx.strokeRect(sx, sy, ex-sx, ey-sy);
+                ctx.rect(sx, sy, ex-sx, ey-sy);
+                ctx.stroke();
             }else if(currentTool==='circle'){
                 const radius = Math.hypot(ex-sx, ey-sy);
-                ctx.beginPath();
                 ctx.arc(sx, sy, radius, 0, Math.PI*2);
                 ctx.stroke();
             }else if(currentTool==='line'){
-                ctx.beginPath();
                 ctx.moveTo(sx, sy);
                 ctx.lineTo(ex, ey);
                 ctx.stroke();
             }
-            shapeStart=null;
+            
+            // Reset path to prevent connecting to next shape
+            ctx.beginPath();
+            shapeStart = null;
+            
+            // Restore context if needed
+            ctx.lineWidth = prevLineWidth;
+            ctx.strokeStyle = prevStrokeStyle;
         }
 
         /* Save completed stroke */
@@ -191,10 +218,14 @@ window.onload = function(){
             strokes.push(currentStroke);
         }
         currentStroke = null;
+        
+        // Ensure path is reset
+        ctx.beginPath();
     }
 
     function draw(e){
         if(!painting) return;
+        if(currentTool !== 'brush') return; // Only draw for brush tool
 
         const {x, y} = getPos(e);
         ctx.lineCap  = 'round';
@@ -214,6 +245,11 @@ window.onload = function(){
     canvasEL.addEventListener('mousedown', beginStroke);
     canvasEL.addEventListener('mouseup',   endStroke);
     canvasEL.addEventListener('mousemove', draw);
+    canvasEL.addEventListener('mouseleave', () => {
+        // End stroke if mouse leaves canvas
+        if(painting) endStroke();
+    });
+    
     // Touch
     canvasEL.addEventListener('touchstart', beginStroke, {passive: true});
     canvasEL.addEventListener('touchend',   endStroke);
@@ -259,6 +295,8 @@ window.onload = function(){
             ctx.strokeStyle = colorInput.value;
             canvasEL.classList.remove('erasing');
         }
+        // Reset any active path
+        ctx.beginPath();
     }
 
     // button
@@ -270,6 +308,7 @@ window.onload = function(){
     clearBtn.addEventListener('click', () => {
         ctx.clearRect(0,0,canvasEL.width,canvasEL.height);
         strokes.length = 0; // reset stored strokes
+        ctx.beginPath(); // Reset any active path
     });
 
     // save
