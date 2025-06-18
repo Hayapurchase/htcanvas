@@ -12,6 +12,7 @@ window.onload = function(){
     const widthInput  = document.getElementById('lineWidth');
     const clearBtn    = document.getElementById('clearCanvas');
     const saveBtn     = document.getElementById('saveCanvas');
+    const eraserBtn   = document.getElementById('toggleEraser');
 
     /* ---------- Canvas helpers ---------- */
     function resizeCanvas(){
@@ -24,14 +25,19 @@ window.onload = function(){
 
     /* ---------- Drawing helpers ---------- */
     function getPos(e){
-        // Both mouse & touch normalised
+        /* Normalise mouse/touch coordinates so they are
+           relative to the canvas top-left corner            */
+        const rect = canvasEL.getBoundingClientRect();
         if(e.touches && e.touches.length){
             return {
-                x: e.touches[0].clientX,
-                y: e.touches[0].clientY
+                x: e.touches[0].clientX - rect.left,
+                y: e.touches[0].clientY - rect.top
             };
         }
-        return {x: e.clientX, y: e.clientY};
+        return {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+        };
     }
 
     function beginStroke(e){
@@ -80,6 +86,24 @@ window.onload = function(){
         ctx.lineWidth = e.target.value;
     });
 
+    /* ---------- Eraser helper ---------- */
+    function toggleEraser(){
+        eraserActive = !eraserActive;
+        if(eraserActive){
+            ctx.globalCompositeOperation = 'destination-out';
+            canvasEL.classList.add('erasing');
+        }else{
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.strokeStyle = colorInput.value;
+            canvasEL.classList.remove('erasing');
+        }
+    }
+
+    // button
+    if(eraserBtn){
+        eraserBtn.addEventListener('click', toggleEraser);
+    }
+
     // clear
     clearBtn.addEventListener('click', () => {
         ctx.clearRect(0,0,canvasEL.width,canvasEL.height);
@@ -97,13 +121,7 @@ window.onload = function(){
     /* ---------- Eraser ---------- */
     document.addEventListener('keydown', e => {
         if(e.key.toLowerCase() === 'e'){
-            eraserActive = !eraserActive;
-            if(eraserActive){
-                ctx.globalCompositeOperation = 'destination-out';
-            }else{
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.strokeStyle = colorInput.value;
-            }
+            toggleEraser();
         }
     });
 
