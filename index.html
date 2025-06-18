@@ -9,40 +9,42 @@
         <style>
             html,
             body{
-                padding:0;
-                margin:0;
+                padding: 0;
+                margin: 0;
             }
 
-            /* Toolbar */
+            /* Toolbar / controls container */
             #controls{
-                display:flex;
-                align-items:center;
-                gap:.75rem;
-                padding:.5rem 1rem;
+                display: flex;
+                align-items: center;
+                gap: .75rem;
+                padding: .5rem 1rem;
                 background:#f4f4f4;
                 border-bottom:1px solid #ddd;
-                box-sizing:border-box;
+                box-sizing: border-box;
             }
 
             #controls label{
                 font-size:.85rem;
-                font-family:system-ui,sans-serif;
+                font-family: system-ui, sans-serif;
             }
 
             canvas{
                 background-color:white;
+                /* Make canvas take the rest of the viewport */
                 display:block;
                 width:100vw;
-                height:calc(100vh - 48px); /* leave room for toolbar */
+                height:calc(100vh - 48px); /* approx toolbar height */
                 cursor: crosshair;         /* default cursor for drawing */
             }
 
             /* Cursor shown when eraser mode is active.
-               (index.js toggles the .erasing class) */
+               (JavaScript will add/remove the .erasing class.) */
             canvas.erasing{
                 cursor: cell;              /* simple visual difference */
             }
         </style>
+        <!-- Custom UI, dat.GUI no longer used -->
         <script defer src = "index.js"></script>
     </head>
     <body>
@@ -59,8 +61,25 @@
             <button id="clearCanvas">Clear</button>
             <button id="saveCanvas">Save</button>
             <button id="toggleEraser">Eraser&nbsp;(E)</button>
+            <!-- Filters -->
+            <label>
+                Filter:
+                <select id="filterSelect">
+                    <option value="none">Original</option>
+                    <option value="grayscale(100%)">Grayscale</option>
+                    <option value="sepia(100%)">Sepia</option>
+                    <option value="blur(3px)">Blur</option>
+                    <option value="brightness(130%)">Brightness</option>
+                    <option value="contrast(150%)">Contrast</option>
+                    <option value="saturate(180%)">Saturate</option>
+                    <option value="invert(100%)">Invert</option>
+                </select>
+            </label>
+            <button id="resetFilter">Reset</button>
         </div>
 
-        <canvas></canvas>
+        <canvas>
+
+        </canvas>
     </body>
 </html>
