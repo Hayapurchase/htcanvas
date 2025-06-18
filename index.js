@@ -99,15 +99,10 @@ window.onload = function(){
         const w = img.width;
         const idx = (y*w + x)*4;
         const startR=data[idx], startG=data[idx+1], startB=data[idx+2], startA=data[idx+3];
-        // if clicking on same colour, abort
-        ctx.fillStyle = fillStyle;
-        const fillRGBA = ctx.fillStyle;
-        // convert to rgba numbers
-        ctx.fillRect(-1,-1,1,1); // dummy so style parses
-        const c = ctx.fillStyle; // e.g. rgb(255,0,0)
-        const match = c.match(/\d+/g).map(Number);
-        const fr=match[0], fg=match[1], fb=match[2], fa=255;
-        if(fr===startR && fg===startG && fb===startB) return;
+        // Convert desired fill colour to RGBA components
+        const [fr,fg,fb,fa] = parseColorToRGBA(fillStyle);
+        // If clicking on the same colour, no need to fill
+        if(fr===startR && fg===startG && fb===startB && fa===startA) return;
 
         const stack=[[x,y]];
         while(stack.length){
@@ -119,6 +114,36 @@ window.onload = function(){
             stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]);
         }
         ctx.putImageData(img,0,0);
+    }
+
+    /* ---------- Colour helpers ---------- */
+    // Convert #rgb / #rrggbb to [r,g,b]
+    function hexToRGB(hex){
+        let h = hex.replace('#','');
+        if(h.length===3){
+            h = h.split('').map(c=>c+c).join('');
+        }
+        const r = parseInt(h.substring(0,2),16);
+        const g = parseInt(h.substring(2,4),16);
+        const b = parseInt(h.substring(4,6),16);
+        return [r,g,b];
+    }
+    // Parse any common CSS colour into [r,g,b,a]
+    function parseColorToRGBA(col){
+        if(col.startsWith('#')){
+            const [r,g,b] = hexToRGB(col);
+            return [r,g,b,255];
+        }
+        const m = col.match(/rgba?\\((\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)(?:\\s*,\\s*(\\d*\\.?\\d+))?\\)/);
+        if(m){
+            const r = parseInt(m[1],10);
+            const g = parseInt(m[2],10);
+            const b = parseInt(m[3],10);
+            const a = m[4]!==undefined ? Math.round(parseFloat(m[4])*255) : 255;
+            return [r,g,b,a];
+        }
+        // Fallback to black
+        return [0,0,0,255];
     }
 
     function beginStroke(e){
