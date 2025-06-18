@@ -32,9 +32,22 @@ window.onload = function(){
 
     /* ---------- Canvas helpers ---------- */
     function resizeCanvas(){
-        // Adapt to CSS-controlled size to avoid scrollbars
-        canvasEL.width  = canvasEL.clientWidth;
-        canvasEL.height = canvasEL.clientHeight;
+        /* When using absolute positioning the <canvas> CSS size is
+           controlled by `left:240px` and `width:calc(100% - 240px)`.
+           Relying on `clientWidth/Height` works most of the time, but
+           it can fall out of sync if the sidebar width or toolbar
+           height change.  We therefore calculate the expected drawing
+           buffer size from the actual viewport dimensions and the
+           neighbouring absolute-sized elements. */
+
+        const controlsEl = document.getElementById('controls');
+        const sidebarEl  = document.getElementById('sidebar');
+
+        const sidebarW   = sidebarEl ? sidebarEl.offsetWidth  : 0;
+        const controlsH  = controlsEl ? controlsEl.offsetHeight : 0;
+
+        canvasEL.width  = window.innerWidth  - sidebarW;
+        canvasEL.height = window.innerHeight - controlsH;
     }
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
@@ -290,7 +303,7 @@ window.onload = function(){
             URL.revokeObjectURL(url);
         });
     }
-//generating svg
+
     function generateSVG(){
         const w = canvasEL.width;
         const h = canvasEL.height;
