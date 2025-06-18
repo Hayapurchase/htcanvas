@@ -29,6 +29,8 @@ annotate screenshots, or create simple artwork without installing any software.
   * **Layers panel** to organise and reorder your artwork  
 * Subtle paper-like **textured background** for a more natural drawing surface  
 * Clean **icon-based buttons** (Font Awesome) for a modern, compact UI  
+* Built-in **theme switcher** – cycle between Light, Dark, and Colourful themes with the   
+  <kbd>half-moon</kbd> icon in the top toolbar  
 
 ---
 
@@ -69,6 +71,8 @@ http-server .               # then browse to http://localhost:8080
    `htcanvas.png`.
 6. Use **Export SVG** to download a resolution-independent vector version of your artwork that can be edited in tools like Adobe Illustrator or Inkscape.
 7. Select tools (Brush, Fill, Shape, Text) from the **Tools** panel in the sidebar, and manage your drawing order in the **Layers** panel.
+8. Click the **theme toggle** button (half-moon icon) in the top toolbar to cycle between  
+   Light, Dark, and Colourful themes at any time.
 
 ### Keyboard Shortcuts
 
