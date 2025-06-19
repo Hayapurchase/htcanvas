@@ -28,7 +28,7 @@ annotate screenshots, or create simple artwork without installing any software.
   * **Move tool** – reposition an existing selection at any time  
   * **Layers panel** to organise and reorder your artwork  
 * Subtle paper-like **textured background** for a more natural drawing surface  
-* Clean **icon-based buttons** (Font Awesome) for a modern, compact UI  
+* Clean **icon-based buttons** (Google Material Icons) for a modern, compact UI  
 * Built-in **theme switcher** – cycle between Light, Dark, and Colourful themes with the   
   <kbd>half-moon</kbd> icon in the top toolbar  
 
