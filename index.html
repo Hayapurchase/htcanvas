@@ -6,11 +6,10 @@
         <title>HTCanvas – Simple Drawing Tool</title>
         <meta name="description" content="A lightweight in-browser drawing canvas">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <!-- Font-Awesome (icons) -->
-        <link rel="stylesheet"
-              href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-              integrity="sha512-1ycn6IcaQQ40/MKB4Imkb9T9+LbcQ2P5e6S0F2dM9O3ZXl9uOK7qv9qY5V4W3X3ENcyhXK6ImmoYQD9N0VY/Q=="
-              crossorigin="anonymous" referrerpolicy="no-referrer"/>
+        <!-- Google Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+        <!-- Google Material Icons -->
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <style>
             /* ---------- Colour Design Tokens ---------- */
             :root{
@@ -73,7 +72,7 @@
 
             #controls label{
                 font-size:.85rem;
-                font-family: system-ui, sans-serif;
+                font-family: 'Roboto', system-ui, sans-serif;
             }
 
             /* Workspace (sidebar + canvas) */
@@ -154,7 +153,41 @@
             #sidebar button:hover{
                 background:var(--button-hover);
             }
+
+            /* ---------- Material-Icons & Button Alignment ---------- */
+            .material-icons{
+                font-size:20px;       /* uniform icon size */
+                line-height:1;        /* remove extra vertical space */
+                vertical-align:middle;
+            }
+
+            /* toolbar buttons share same layout principles as sidebar buttons */
+            #controls button,
+            #sidebar button{
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                gap:.25rem;           /* space between icon and label */
+            }
+
+            /* ---------- Material Icons fallback ---------- */
+            .btn-label{display:none;}                 /* hide labels when icons render */
+            body.mi-fallback .btn-label{display:inline;}
+            body.mi-fallback .material-icons{display:none;} /* hide broken icons */
         </style>
+        <!-- Detect if Material-Icons loaded; enable fallback when not -->
+        <script>
+        document.addEventListener('DOMContentLoaded',()=>{
+          const probe=document.createElement('span');
+          probe.className='material-icons';
+          probe.textContent='check';
+          probe.style.position='absolute';probe.style.opacity='0';
+          document.body.appendChild(probe);
+          const loaded=getComputedStyle(probe).fontFamily.includes('Material Icons');
+          probe.remove();
+          if(!loaded){document.body.classList.add('mi-fallback');}
+        });
+        </script>
         <!-- Custom UI, dat.GUI no longer used -->
         <script defer src = "index.js"></script>
     </head>
@@ -169,11 +202,21 @@
                 Width:
                 <input type="range" id="lineWidth" min="1" max="20" value="5">
             </label>
-            <button id="clearCanvas"   title="Clear"><i class="fa-solid fa-trash"></i></button>
-            <button id="saveCanvas"    title="Save PNG"><i class="fa-solid fa-image"></i></button>
-            <button id="saveSVG"       title="Export SVG"><i class="fa-solid fa-file-export"></i></button>
-            <button id="toggleEraser"  title="Eraser (E)"><i class="fa-solid fa-eraser"></i></button>
-            <button id="themeToggle"   title="Change Theme"><i class="fa-solid fa-circle-half-stroke"></i></button>
+            <button id="clearCanvas"   title="Clear">
+                <span class="material-icons">delete</span><span class="btn-label">Clear</span>
+            </button>
+            <button id="saveCanvas"    title="Save PNG">
+                <span class="material-icons">image</span><span class="btn-label">PNG</span>
+            </button>
+            <button id="saveSVG"       title="Export SVG">
+                <span class="material-icons">save_alt</span><span class="btn-label">SVG</span>
+            </button>
+            <button id="toggleEraser"  title="Eraser (E)">
+                <span class="material-icons">ink_eraser</span><span class="btn-label">Eraser</span>
+            </button>
+            <button id="themeToggle"   title="Change Theme">
+                <span class="material-icons">dark_mode</span><span class="btn-label">Theme</span>
+            </button>
             <!-- Filters -->
             <label>
                 Filter:
@@ -198,14 +241,30 @@
                 <!-- Tools Panel -->
                 <section class="panel" id="toolsPanel">
                     <h3>Tools</h3>
-                    <button data-tool="brush"  title="Brush"><i class="fa-solid fa-paint-brush"></i></button>
-                    <button data-tool="fill"   title="Fill Bucket"><i class="fa-solid fa-fill-drip"></i></button>
-                    <button data-tool="rect"   title="Rectangle"><i class="fa-regular fa-square"></i></button>
-                    <button data-tool="circle" title="Circle"><i class="fa-regular fa-circle"></i></button>
-                    <button data-tool="line"   title="Line"><i class="fa-solid fa-minus"></i></button>
-                    <button data-tool="text"   title="Text"><i class="fa-solid fa-font"></i></button>
-                    <button data-tool="lasso"  title="Lasso Select"><i class="fa-solid fa-draw-polygon"></i></button>
-                    <button data-tool="move"   title="Move Selection"><i class="fa-solid fa-up-down-left-right"></i></button>
+                    <button data-tool="brush"  title="Brush">
+                        <span class="material-icons">brush</span><span class="btn-label">Brush</span>
+                    </button>
+                    <button data-tool="fill"   title="Fill Bucket">
+                        <span class="material-icons">format_color_fill</span><span class="btn-label">Fill</span>
+                    </button>
+                    <button data-tool="rect"   title="Rectangle">
+                        <span class="material-icons">crop_square</span><span class="btn-label">Rect</span>
+                    </button>
+                    <button data-tool="circle" title="Circle">
+                        <span class="material-icons">circle</span><span class="btn-label">Circle</span>
+                    </button>
+                    <button data-tool="line"   title="Line">
+                        <span class="material-icons">remove</span><span class="btn-label">Line</span>
+                    </button>
+                    <button data-tool="text"   title="Text">
+                        <span class="material-icons">text_fields</span><span class="btn-label">Text</span>
+                    </button>
+                    <button data-tool="lasso"  title="Lasso Select">
+                        <span class="material-icons">select_all</span><span class="btn-label">Lasso</span>
+                    </button>
+                    <button data-tool="move"   title="Move Selection">
+                        <span class="material-icons">open_with</span><span class="btn-label">Move</span>
+                    </button>
                 </section>
 
                 <!-- Layers Panel -->
