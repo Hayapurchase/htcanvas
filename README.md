@@ -31,6 +31,11 @@ annotate screenshots, or create simple artwork without installing any software.
 * Clean **icon-based buttons** (Google Material Icons) for a modern, compact UI  
 * Built-in **theme switcher** – cycle between Light, Dark, and Colourful themes with the   
   <kbd>half-moon</kbd> icon in the top toolbar  
+* Brand-new **vector-graphics workspace**  
+  * **Pen / Bézier tools** to draw precise paths  
+  * **Path-edit & shape-builder** modes for node/segment manipulation  
+  * Separate **vector properties panel** (stroke, fill, opacity, rotation)  
+  * Vector shapes are kept editable and are preserved in **SVG export**
 
 ---
 
@@ -73,6 +78,7 @@ http-server .               # then browse to http://localhost:8080
 7. Select tools (Brush, Fill, Shape, Text) from the **Tools** panel in the sidebar, and manage your drawing order in the **Layers** panel.
 8. Click the **theme toggle** button (half-moon icon) in the top toolbar to cycle between  
    Light, Dark, and Colourful themes at any time.
+9. For vector work, switch to the **Vector Tools** panel (Pen, Bézier, Edit, Shape-builder) and adjust styling in **Vector Properties**.
 
 ### Keyboard Shortcuts
 
