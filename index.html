@@ -267,6 +267,23 @@
                     </button>
                 </section>
 
+                <!-- Vector Tools Panel -->
+                <section class="panel" id="vectorToolsPanel">
+                    <h3>Vector&nbsp;Tools</h3>
+                    <button data-tool="pen"     title="Pen Tool">
+                        <span class="material-icons">edit</span><span class="btn-label">Pen</span>
+                    </button>
+                    <button data-tool="bezier"  title="Bezier Curve">
+                        <span class="material-icons">gesture</span><span class="btn-label">Bezier</span>
+                    </button>
+                    <button data-tool="pathEdit" title="Path Edit">
+                        <span class="material-icons">timeline</span><span class="btn-label">Edit</span>
+                    </button>
+                    <button data-tool="shapeBuild" title="Shape Builder">
+                        <span class="material-icons">category</span><span class="btn-label">Shape</span>
+                    </button>
+                </section>
+
                 <!-- Layers Panel -->
                 <section class="panel" id="layersPanel">
                     <h3>Layers</h3>
@@ -286,6 +303,35 @@
                     <label>
                         Stroke&nbsp;Width:
                         <input type="range" id="shapeStrokeWidth" min="1" max="20" value="2">
+                    </label>
+                </section>
+
+                <!-- Vector Properties Panel -->
+                <section class="panel" id="vectorPropsPanel">
+                    <h3>Vector&nbsp;Properties</h3>
+                    <label>
+                        Stroke&nbsp;Colour:
+                        <input type="color" id="vectorStrokeColor" value="#000000">
+                    </label>
+                    <br>
+                    <label>
+                        Stroke&nbsp;Width:
+                        <input type="range" id="vectorStrokeWidth" min="1" max="20" value="2">
+                    </label>
+                    <br>
+                    <label>
+                        Fill&nbsp;Colour:
+                        <input type="color" id="vectorFillColor" value="#ffffff">
+                    </label>
+                    <br>
+                    <label>
+                        Opacity:
+                        <input type="range" id="vectorOpacity" min="0" max="1" step="0.05" value="1">
+                    </label>
+                    <br>
+                    <label>
+                        Rotate&nbsp;(°):
+                        <input type="number" id="vectorRotate" value="0">
                     </label>
                 </section>
             </aside>
