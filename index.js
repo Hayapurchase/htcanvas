@@ -62,6 +62,19 @@ window.onload = function(){
     const strokes        = [];               // store finished strokes
     let   currentStroke  = null;             // stroke currently being drawn
 
+    /* ---------- Vector paths (placeholder) ----------
+       Full vector-editing logic will populate this array in
+       follow-up patches.  Each entry will look like:
+       {
+         points: [{x,y}, …],   // path vertices
+         stroke: '#000',
+         width : 2,
+         fill  : 'none',
+         opacity: 1
+       }
+    ---------------------------------------------------*/
+    const vectorPaths   = [];               // prevent ReferenceError in SVG export
+
     /* ---------- Canvas helpers ---------- */
     function resizeCanvas(){
         /* When using absolute positioning the <canvas> CSS size is
@@ -721,6 +734,11 @@ window.onload = function(){
         for(const s of strokes){
             const d = s.points.map((p,i)=> (i===0?`M ${p.x} ${p.y}`:`L ${p.x} ${p.y}`)).join(' ');
             svg += `<path d="${d}" stroke="${s.color}" stroke-width="${s.width}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+        }
+        // ---- vector paths ----
+        for(const p of vectorPaths){
+            const d = p.points.map((pt,i)=> (i===0?`M ${pt.x} ${pt.y}`:`L ${pt.x} ${pt.y}`)).join(' ');
+            svg += `<path d="${d}" stroke="${p.stroke}" stroke-width="${p.width}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
         }
         svg += '</svg>';
         return svg;
